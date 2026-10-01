@@ -219,54 +219,47 @@ async function shareJPG(){
 async function exportPDF(){
  if(!window.jspdf?.jsPDF)throw new Error('PDF export library did not load. Check your connection and try again.');
  const can=await canvas(),pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
- const pageWidth=210,pageHeight=297,ratio=can.height/can.width,imageHeight=pageWidth*ratio,top=(pageHeight-imageHeight)/2;
- pdf.addImage(can.toDataURL('image/jpeg',.98),'JPEG',0,top,pageWidth,imageHeight,undefined,'FAST');pdf.save(`${editing.invoiceNo}.pdf`);toast('Preview saved as PDF.');
+ pdf.addImage(can.toDataURL('image/png'),'PNG',0,0,210,297);pdf.save(`${editing.invoiceNo}.pdf`);toast('Preview saved as PDF.');
 }
-function exportExcel(){
- if(!window.XLSX?.utils)throw new Error('Spreadsheet export library did not load. Check your connection and try again.');
- const X=window.XLSX,rows=[
-  ['TYTAN DOOR','DURIAN','GREENPLY','CENTURYPLY',''],
-  [state.settings.company,'','','',''],[state.settings.location,'','','',''],
-  ['Name:',editing.name,'Phone No.:',editing.phone,'Date: '+editing.date],
-  ['Address:',editing.address,'','','Invoice#: '+String(editing.invoiceNo||'').replace(state.settings.prefix||'','')],
-  ['','','','',''],
-  ['Description','Size','Pieces','Rate (₹)','Amount (₹)']
- ];
- for(let i=0;i<10;i++){const item=editing.items[i],pcs=Number(item?.pcs)||0,rate=Number(item?.rate)||0;rows.push(item?[item.desc,item.size,pcs,rate,{t:'n',v:pcs*rate,f:`C${8+i}*D${8+i}`}]:['','','','',''])}
- rows.push(['','','','Total',{t:'n',v:calc(editing.items),f:'SUM(E8:E17)'}]);
- rows.push(['','','','','']);
- rows.push(['Work Details','','','','Proprietor: '+state.settings.proprietor]);
- rows.push(['Aluminum Doors & Windows','','','','Signature']);
- rows.push(['Glass Glazing Works','','','','']);
- rows.push(['Designer & WPC Doors','','','','']);
- rows.push(['Aluminum Partition Work','','','','']);
- rows.push(['Aluminum Ledders','','','','']);
- rows.push(['Hardware','','','','']);
- rows.push(['Steel & Iron Railing','','','','']);
- rows.push(['','','','','']);
- rows.push(['Terms & damage: Please inspect at delivery/installation; note visible damage and notify us promptly.','','','','']);
- rows.push(['Warranty: Manufacturer warranty, if provided, follows its warranty card.','','','','']);
- rows.push(['Legal: Consumer rights and dispute forums remain subject to applicable law.','','','','']);
- rows.push([`${state.settings.email}  ·  ${state.settings.phone}  ·  ${state.settings.website}`,'','','','']);
- const ws=X.utils.aoa_to_sheet(rows),navy='22354C',red='B62935',pale='F4F6FA',line='D9DFE7',white='FFFFFF',dark='263448';
- ws['!cols']=[{wch:34},{wch:14},{wch:12},{wch:16},{wch:24}];
- ws['!rows']=[{hpt:28},{hpt:32},{hpt:21},{hpt:24},{hpt:24},{hpt:10},{hpt:26},...Array.from({length:10},()=>({hpt:24})),{hpt:28},{hpt:10},{hpt:23},...Array.from({length:7},()=>({hpt:21})),{hpt:10},{hpt:30},{hpt:24},{hpt:24},{hpt:25}];
-  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:0}},{s:{r:0,c:1},e:{r:0,c:1}},{s:{r:0,c:2},e:{r:0,c:2}},{s:{r:0,c:3},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}},{s:{r:2,c:0},e:{r:2,c:4}},{s:{r:4,c:1},e:{r:4,c:3}},{s:{r:19,c:0},e:{r:19,c:1}},{s:{r:19,c:3},e:{r:19,c:4}},{s:{r:20,c:0},e:{r:20,c:1}},{s:{r:21,c:0},e:{r:21,c:1}},{s:{r:22,c:0},e:{r:22,c:1}},{s:{r:23,c:0},e:{r:23,c:1}},{s:{r:24,c:0},e:{r:24,c:1}},{s:{r:25,c:0},e:{r:25,c:1}},{s:{r:26,c:0},e:{r:26,c:1}},{s:{r:28,c:0},e:{r:28,c:4}},{s:{r:29,c:0},e:{r:29,c:4}},{s:{r:30,c:0},e:{r:30,c:4}},{s:{r:31,c:0},e:{r:31,c:4}}];
-  const border={style:'thin',color:{rgb:line}},setStyle=(range,style)=>{for(let r=range.s.r;r<=range.e.r;r++)for(let c=range.s.c;c<=range.e.c;c++){const address=X.utils.encode_cell({r,c});if(ws[address])ws[address].s={...(ws[address].s||{}),...style}}};
-  setStyle({s:{r:0,c:0},e:{r:0,c:4}},{font:{bold:true,color:{rgb:red},sz:13},alignment:{horizontal:'center',vertical:'center'}});
-  setStyle({s:{r:1,c:0},e:{r:1,c:4}},{font:{bold:true,color:{rgb:navy},sz:20},alignment:{horizontal:'center',vertical:'center'}});
-  setStyle({s:{r:2,c:0},e:{r:2,c:4}},{font:{color:{rgb:'647184'},sz:11},alignment:{horizontal:'center'}});
-  setStyle({s:{r:3,c:0},e:{r:4,c:4}},{font:{color:{rgb:dark},sz:11},alignment:{vertical:'center',wrapText:true},border:{bottom:border}});
-  setStyle({s:{r:6,c:0},e:{r:6,c:4}},{font:{bold:true,color:{rgb:white},sz:12},fill:{fgColor:{rgb:navy}},alignment:{horizontal:'center',vertical:'center'},border:{top:border,bottom:border}});
-  setStyle({s:{r:7,c:0},e:{r:16,c:4}},{font:{color:{rgb:dark},sz:10},alignment:{vertical:'center',wrapText:true},border:{bottom:border}});
-  setStyle({s:{r:17,c:0},e:{r:17,c:4}},{font:{bold:true,color:{rgb:navy},sz:12},fill:{fgColor:{rgb:pale}},border:{top:border,bottom:border},alignment:{vertical:'center'}});
-  setStyle({s:{r:19,c:0},e:{r:19,c:4}},{font:{bold:true,color:{rgb:white},sz:11},fill:{fgColor:{rgb:navy}},alignment:{vertical:'center'}});
-  setStyle({s:{r:20,c:0},e:{r:26,c:4}},{font:{color:{rgb:dark},sz:10},alignment:{vertical:'center'}});
-  setStyle({s:{r:28,c:0},e:{r:30,c:4}},{font:{color:{rgb:'697588'},sz:8},alignment:{wrapText:true,vertical:'center'}});
-  setStyle({s:{r:31,c:0},e:{r:31,c:4}},{font:{bold:true,color:{rgb:red},sz:10},alignment:{horizontal:'center',vertical:'center'}});
-  for(let r=7;r<=17;r++){for(let c=2;c<=4;c++){const cell=ws[X.utils.encode_cell({r,c})];if(cell)cell.z=c===2?'0':'₹#,##0.00'}if(r<17&&r%2===0)setStyle({s:{r,c:0},e:{r,c:4}},{fill:{fgColor:{rgb:'F7F9FC'}}})}
-  ws['!pageSetup']={orientation:'portrait',paperSize:9,fitToWidth:1,fitToHeight:1};ws['!margins']={left:.2,right:.2,top:.25,bottom:.25,header:0,footer:0};
-  const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'Invoice');X.writeFile(wb,`${editing.invoiceNo}.xlsx`);toast('Invoice spreadsheet saved.');
+async function exportExcel(){
+ if(!window.ExcelJS?.Workbook)throw new Error('Spreadsheet export library did not load. Check your connection and try again.');
+ const preview=await canvas(),workbook=new window.ExcelJS.Workbook();
+ workbook.creator='TYTAN BILLBOOK';workbook.calcProperties.fullCalcOnLoad=true;
+ const cover=workbook.addWorksheet('Invoice Preview',{views:[{showGridLines:false}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,margins:{left:0,right:0,top:0,bottom:0,header:0,footer:0}}});
+ cover.columns=Array.from({length:8},()=>({width:13}));cover.pageSetup.printArea='A1:H41';
+ for(let row=1;row<=41;row++)cover.getRow(row).height=19.9;
+ const imageId=workbook.addImage({base64:preview.toDataURL('image/png'),extension:'png'});
+ cover.addImage(imageId,{tl:{col:0,row:0},ext:{width:768,height:1086}});
+
+ const ws=workbook.addWorksheet('Invoice Data',{views:[{showGridLines:false}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,margins:{left:.25,right:.25,top:.35,bottom:.35,header:0,footer:0}}});
+ ws.columns=[{width:32},{width:26},{width:14},{width:18},{width:22}];
+ ws.addRow([state.settings.company]);ws.addRow([state.settings.location]);
+ ws.addRow(['Invoice No.',editing.invoiceNo,'Date',editing.date]);
+ ws.addRow(['Customer',editing.name,'Phone',editing.phone]);
+ ws.addRow(['Address',editing.address]);ws.addRow([]);
+ ws.addRow(['Description','Size','Pieces','Rate (₹)','Amount (₹)']);
+ for(let i=0;i<10;i++){const item=editing.items[i];const row=ws.addRow(item?[item.desc,item.size,Number(item.pcs)||0,Number(item.rate)||0,{formula:`C${8+i}*D${8+i}`,result:(Number(item.pcs)||0)*(Number(item.rate)||0)}]:['','','','','']);row.height=22}
+ ws.addRow(['','','','Total',{formula:'SUM(E8:E17)',result:calc(editing.items)}]);ws.addRow([]);
+ ws.addRow(['Work Details','','','',`Proprietor: ${state.settings.proprietor}`]);
+ ['Aluminum Doors & Windows','Glass Glazing Works','Designer & WPC Doors','Aluminum Partition Work','Aluminum Ledders','Hardware','Steel & Iron Railing'].forEach(item=>ws.addRow([item]));
+ ws.addRow([]);ws.addRow(['Terms & damage: Please inspect at delivery/installation; note visible damage and notify us promptly.']);
+ ws.addRow(['Warranty: Manufacturer warranty, if provided, follows its warranty card.']);
+ ws.addRow(['Legal: Consumer rights and dispute forums remain subject to applicable law.']);
+ ws.addRow([`${state.settings.email}  ·  ${state.settings.phone}  ·  ${state.settings.website}`]);
+ ws.mergeCells('A1:E1');ws.mergeCells('A2:E2');ws.mergeCells('B5:E5');
+ [29,30,31,32].forEach(row=>ws.mergeCells(`A${row}:E${row}`));
+ const navy='FF22354C',red='FFB62935',white='FFFFFFFF',dark='FF263448',line='FFD9DFE7';
+ ws.getRow(1).height=34;ws.getRow(1).getCell(1).font={name:'Arial',size:20,bold:true,color:{argb:navy}};ws.getRow(1).getCell(1).alignment={horizontal:'center'};
+ ws.getRow(2).height=24;ws.getRow(2).getCell(1).font={name:'Arial',size:11,color:{argb:'FF647184'}};ws.getRow(2).getCell(1).alignment={horizontal:'center'};
+ [3,4,5].forEach(row=>{ws.getRow(row).height=25;ws.getRow(row).eachCell(cell=>{cell.font={name:'Arial',size:11,color:{argb:dark}};cell.border={bottom:{style:'thin',color:{argb:line}}};cell.alignment={vertical:'middle',wrapText:true}})});
+ ws.getRow(7).height=27;ws.getRow(7).eachCell(cell=>{cell.font={bold:true,color:{argb:white}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:navy}};cell.alignment={horizontal:'center',vertical:'middle'}});
+ for(let row=8;row<=17;row++){ws.getRow(row).eachCell((cell,col)=>{cell.font={name:'Arial',size:10,color:{argb:dark}};cell.border={bottom:{style:'thin',color:{argb:line}}};if(col>=3)cell.numFmt=col===3?'0':'₹#,##0.00';if(row%2===0)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF7F9FC'}}})}
+ ws.getRow(18).height=28;ws.getRow(18).eachCell(cell=>{cell.font={bold:true,color:{argb:navy}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F6FA'}};cell.border={top:{style:'thin',color:{argb:line}},bottom:{style:'thin',color:{argb:line}}}});ws.getCell('E18').numFmt='₹#,##0.00';
+ ws.getRow(20).height=24;ws.getRow(20).eachCell(cell=>{cell.font={bold:true,color:{argb:white}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:navy}}});
+ [29,30,31].forEach(row=>{ws.getRow(row).height=25;ws.getCell(`A${row}`).font={size:9,color:{argb:'FF697588'}};ws.getCell(`A${row}`).alignment={wrapText:true,vertical:'middle'}});
+ ws.getRow(32).height=25;ws.getCell('A32').font={bold:true,color:{argb:red}};ws.getCell('A32').alignment={horizontal:'center'};
+ const buffer=await workbook.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=`${editing.invoiceNo}.xlsx`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('Invoice preview and editable data saved as XLSX.');
 }
 async function selectExport(format){
  $('exportDialog').close();
@@ -275,7 +268,7 @@ async function selectExport(format){
  try{
   if(format==='jpg')await shareJPG();
   else if(format==='pdf')await exportPDF();
-  else if(format==='xlsx')exportExcel();
+  else if(format==='xlsx')await exportExcel();
  }catch(error){
   if(error.name!=='AbortError')toast(`Export failed: ${error.message}`);
  }finally{if(exportButton){exportButton.disabled=false;exportButton.removeAttribute('aria-busy')}$('exportLoading').classList.add('hidden')}

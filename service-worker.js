@@ -1,10 +1,10 @@
-const CACHE_NAME='tytan-invoice-shell-v10';
+const CACHE_NAME='tytan-invoice-shell-v11';
 const SHELL_FILES=['./','./index.html','./styles.css','./app.js','./cloud-sync.js','./manifest.json','./icons/tytan.svg','./icons/tytan-192.png','./icons/tytan-512.png','./icons/tytan-logo.png','./icons/tytan-logo-invoice.png','./icons/durian-logo.png','./icons/greenply-logo.png','./icons/greenply-logo-invoice.png','./icons/centuryply-logo.png','./icons/centuryply-logo-invoice.png'];
 const OPTIONAL_SCRIPTS=[
  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
  'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
- 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js'
+ 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'
 ];
 
 self.addEventListener('install',event=>{
