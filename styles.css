@@ -273,3 +273,10 @@ body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--canvas);colo
 .delete-confirm-button:hover:not(:disabled){background:#a9251a}
 .delete-confirm-button:disabled{cursor:not-allowed;opacity:.48}
 @media(max-width:480px){.delete-dialog{padding:21px}.delete-dialog-actions{flex-direction:column-reverse}.delete-dialog-actions .btn{width:100%;min-height:44px}}
+.export-loading{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;background:#17203370;backdrop-filter:blur(4px);color:#1d2c40}
+.export-loading:before{position:absolute;inset:0;content:""}
+.export-loading>*{position:relative}
+.export-loading-spinner{width:42px;height:42px;border:4px solid #e7eaf0;border-top-color:#5b16e8;border-radius:50%;animation:export-spin .8s linear infinite}
+.export-loading strong{padding-top:3px;color:#fff;font-size:16px;text-shadow:0 1px 4px #0006}
+.export-loading small{color:#f2f3f7;text-shadow:0 1px 4px #0006}
+@keyframes export-spin{to{transform:rotate(360deg)}}

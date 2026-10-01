@@ -166,10 +166,20 @@
     <button id="confirmPermanentDelete" class="btn delete-confirm-button" type="button" disabled>Delete permanently</button>
   </div>
 </dialog>
+<dialog id="appConfirmDialog" class="delete-dialog app-confirm-dialog" aria-labelledby="appConfirmTitle">
+  <div class="delete-dialog-icon" aria-hidden="true">?</div>
+  <h2 id="appConfirmTitle">Confirm action</h2>
+  <p id="appConfirmMessage" class="delete-dialog-summary"></p>
+  <div class="delete-dialog-actions">
+    <button id="cancelAppConfirm" class="btn" type="button">Cancel</button>
+    <button id="acceptAppConfirm" class="btn primary" type="button">Continue</button>
+  </div>
+</dialog>
+<div id="exportLoading" class="export-loading hidden" role="status" aria-live="polite"><span class="export-loading-spinner" aria-hidden="true"></span><strong id="exportLoadingText">Preparing invoice…</strong><small>This may take a few seconds.</small></div>
 <div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="app.js"></script><script src="cloud-sync.js"></script><script type="module" src="cloud.js"></script>
 </body>
 </html>
