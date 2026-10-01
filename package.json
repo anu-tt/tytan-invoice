@@ -1,0 +1,18 @@
+{
+  "name": "tytan-invoice",
+  "version": "1.0.0",
+  "description": "- Email/password login and persistent sessions - Cloud invoice storage with Supabase - Realtime phone/laptop sync - Atomic cloud invoice-number generation - RLS-protected company and invoice data - Fixed TYTAN DOOR-style invoice layout - PDF/JPG/Excel export and mobile share - Search, date/calendar filters, edit/copy/delete - Responsive PWA for phone and laptop",
+  "main": "app.js",
+  "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
+}

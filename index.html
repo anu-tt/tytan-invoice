@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#5b16e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icons/tytan-192.png">
+  <title>TYTAN DOOR — Secure Invoice Manager</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="authView" style="min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#4d0ed7,#7a1ae8);padding:20px"><div style="width:min(420px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0003"><div style="font-size:30px;font-weight:900;text-align:center">TYTAN <span style="color:#d83239">DOOR</span></div><p style="text-align:center;color:#777">Invoice Manager · Secure sign in</p><form id="authForm"><label>Email<input id="authEmail" type="email" autocomplete="username" required></label><label>Password<input id="authPassword" type="password" autocomplete="current-password" required></label><button id="authSubmit" class="btn primary" style="width:100%">Login</button></form><button id="authInstallBtn" class="btn download-app-btn" type="button">Download App</button><div id="authMsg" style="text-align:center;color:#b52027;min-height:20px;margin-top:12px"></div></div></div><div id="appView" class="hidden"><div class="app-shell">
+  <header class="topbar">
+    <div>
+      <div class="brand">TYTAN <span>DOOR</span></div>
+      <div class="subbrand">Invoice Manager</div>
+    </div>
+    <div class="top-actions"><span id="connectionStatus" class="connection-status"></span><span id="syncStatus" class="sync-status" data-state="pending">Preparing local data…</span><span id="userEmail" style="font-size:12px;color:#666"></span><button id="logoutBtn" class="btn">Logout</button>
+      <button id="newInvoiceBtn" class="btn primary">+ New Invoice</button>
+      <button id="settingsBtn" class="btn">Settings</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="dashboard" class="page">
+      <div class="cards">
+        <div class="stat"><span>Total Invoices</span><strong id="statInvoices">0</strong></div>
+        <div class="stat"><span>This Month</span><strong id="statMonth">₹0</strong></div>
+        <div class="stat"><span>Today</span><strong id="statToday">₹0</strong></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Invoice History</h2>
+          <div class="filters">
+            <input id="searchBox" placeholder="Search customer / invoice no.">
+            <input id="fromDate" type="date">
+            <input id="toDate" type="date">
+            <button id="clearFilters" class="btn">Clear</button>
+            <button id="toggleDeletedBtn" class="btn" type="button">Show voided</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Phone</th><th>Total</th><th>Actions</th></tr></thead>
+            <tbody id="invoiceTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="editor" class="page hidden">
+      <div class="editor-head">
+        <button id="backBtn" class="btn">← Back</button>
+        <div>
+          <h2 id="editorTitle">New Invoice</h2>
+          <small>Fixed TYTAN DOOR invoice format</small>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="grid3">
+          <label>Name<input id="customerName"></label>
+          <label>Phone No.<input id="customerPhone"></label>
+          <label>Date<input id="invoiceDate" type="date"></label>
+          <label class="wide">Address<textarea id="customerAddress" rows="2"></textarea></label>
+          <label>Invoice No.<input id="invoiceNo" readonly></label>
+        </div>
+
+        <div class="items-head">
+          <h3>Items</h3>
+          <button id="addItemBtn" class="btn">+ Add Row</button>
+        </div>
+        <div class="item-table-wrap">
+          <table class="items-table">
+            <thead><tr><th>Description</th><th>Size</th><th>Pieces</th><th>Rate</th><th>Amount (₹)</th><th></th></tr></thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+        <div class="total-row"><span>Total</span><strong id="grandTotal">₹0.00</strong></div>
+        <div class="form-actions">
+          <button id="previewBtn" class="btn" type="button">Preview Invoice</button>
+          <button id="saveBtn" class="btn primary" type="button">Save Invoice</button>
+          <button id="shareBtn" class="btn" type="button">Share / Export</button>
+        </div>
+      </div>
+
+      <div id="invoicePreviewWrap" class="invoice-preview-wrap hidden">
+        <div class="preview-tools">
+          <strong>Invoice Preview</strong>
+          <span>Exports use this same layout.</span>
+        </div>
+        <div id="invoicePreview" class="invoice-paper"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="page hidden">
+      <div class="editor-head">
+        <button id="settingsBackBtn" class="btn">← Back</button>
+        <div><h2>Company Settings</h2><small>These details appear on every invoice.</small></div>
+      </div>
+      <div class="form-panel">
+        <div class="grid2">
+          <label>Company / Header Name<input id="sCompany" value="Anil Enterprises"></label>
+          <label>Location / Tagline<input id="sLocation" value="Okdenganj, Sadev Katra (Ballia)"></label>
+          <label>Phone<input id="sPhone" value="8318886379"></label>
+          <label>Email<input id="sEmail" value="tytandoor@gmail.com"></label>
+          <label>Website<input id="sWebsite" value="www.tytandoor.com"></label>
+          <label>Proprietor<input id="sProprietor" value="Khushir Gupta"></label>
+          <label>Invoice Prefix<input id="sPrefix" value="INV-"></label>
+          <label>Next Invoice Number (automatic)<input id="sNextNo" type="number" value="1" min="1" readonly></label>
+        </div>
+        <button id="saveSettingsBtn" class="btn primary">Save Settings</button>
+        <div class="sync-box">
+          <h3>Offline & Cloud Sync</h3>
+          <p id="syncDescription">Invoices are saved on this device first. Sign in with the same account on your other devices to sync them through Supabase.</p>
+          <div class="settings-actions"><button id="syncNowBtn" class="btn" disabled>Sync now</button><button id="requestStorageBtn" class="btn">Keep offline data on this device</button></div>
+          <p id="storageStatus" class="storage-status">Checking browser storage…</p>
+          <p class="install-help">Install this app from your browser menu to open it like an app. On iPhone/iPad, use Share → Add to Home Screen.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="exportDialog" class="export-dialog" aria-labelledby="exportDialogTitle">
+  <div class="export-dialog-head">
+    <div>
+      <h2 id="exportDialogTitle">Share / Export Invoice</h2>
+      <p>Choose a format for this invoice.</p>
+    </div>
+    <button id="closeExportDialog" class="export-close" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="export-options">
+    <button class="export-option" type="button" data-export="jpg">
+      <span class="export-icon jpg-icon" aria-hidden="true">JPG</span>
+      <span class="export-option-text"><strong>Share as JPG</strong><small>Invoice image · .jpg</small></span>
+      <span class="export-arrow" aria-hidden="true">›</span>
+    </button>
+    <button class="export-option" type="button" data-export="pdf">
+      <span class="export-icon pdf-icon" aria-hidden="true">PDF</span>
+      <span class="export-option-text"><strong>Save as PDF</strong><small>Print-ready document · .pdf</small></span>
+      <span class="export-arrow" aria-hidden="true">›</span>
+    </button>
+    <button class="export-option" type="button" data-export="xlsx">
+      <span class="export-icon xlsx-icon" aria-hidden="true">XLS</span>
+      <span class="export-option-text"><strong>Save as XLSX</strong><small>Spreadsheet · .xlsx</small></span>
+      <span class="export-arrow" aria-hidden="true">›</span>
+    </button>
+  </div>
+</dialog>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script><script src="cloud-sync.js"></script><script type="module" src="cloud.js"></script>
+</body>
+</html>

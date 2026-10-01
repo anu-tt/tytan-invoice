@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "TYTAN DOOR Invoice Manager",
+  "short_name": "TYTAN Invoice",
+  "description": "Create and manage TYTAN DOOR invoices offline and sync across devices.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#f4f5f8",
+  "theme_color": "#5b16e8",
+  "icons": [
+    {
+      "src": "./icons/tytan.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/tytan-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/tytan-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
