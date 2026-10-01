@@ -201,6 +201,14 @@ async function canvas(){
   onclone:documentClone=>{
    const invoice=documentClone.getElementById('invoicePreview');
    invoice.style.width='768px';invoice.style.height='1086px';invoice.style.maxWidth='none';invoice.style.aspectRatio='auto';
+   const tableBody=invoice.querySelector('.template-table-body');
+   if(tableBody){
+    tableBody.style.backgroundImage='none';tableBody.style.backgroundColor='#fff';
+    tableBody.style.borderLeft='1px solid #e0e5ec';tableBody.style.borderRight='1px solid #e0e5ec';
+    tableBody.querySelectorAll('.template-item-row').forEach(row=>{row.style.borderBottom='1px solid #e7ebf0'});
+    tableBody.querySelectorAll('.template-item-row span:not(:first-child)').forEach(cell=>{cell.style.borderLeft='1px solid #e0e5ec'});
+    invoice.querySelectorAll('.template-table-heading span:not(:first-child)').forEach(cell=>{cell.style.borderLeft='1px solid rgba(255,255,255,.3)'});
+   }
   }
  });
 }
