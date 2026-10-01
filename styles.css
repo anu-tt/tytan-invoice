@@ -256,3 +256,5 @@ body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--canvas);colo
  .inv-bottom{grid-template-columns:1fr}
  .sign{text-align:left}
 }
+
+.action-btn.danger{color:#b42318;background:#fff1f0}

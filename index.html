@@ -112,9 +112,10 @@
           <label>Website<input id="sWebsite" value="www.tytandoor.com"></label>
           <label>Proprietor<input id="sProprietor" value="Khushir Gupta"></label>
           <label>Invoice Prefix<input id="sPrefix" value="INV-"></label>
-          <label>Next Invoice Number (automatic)<input id="sNextNo" type="number" value="1" min="1" readonly></label>
+          <label>Next Invoice Number<input id="sNextNo" type="number" value="1" min="1"></label>
         </div>
         <button id="saveSettingsBtn" class="btn primary">Save Settings</button>
+        <button id="restartInvoiceNumberBtn" class="btn" type="button">Restart invoice numbering</button>
         <div class="sync-box">
           <h3>Offline & Cloud Sync</h3>
           <p id="syncDescription">Invoices are saved on this device first. Sign in with the same account on your other devices to sync them through Supabase.</p>

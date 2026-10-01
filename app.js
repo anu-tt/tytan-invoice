@@ -152,6 +152,12 @@ function deleteInvoice(id){
  invoice.deletedAt=new Date().toISOString();invoice.updatedAt=invoice.deletedAt;
  saveState();queueInvoiceChange('delete',invoice);refreshDashboard();toast('Invoice marked void; its record is retained.');
 }
+function permanentlyDeleteInvoice(id){
+ const invoice=state.invoices.find(item=>item.id===id&&item.deletedAt);if(!invoice)return;
+ if(prompt(`Permanently delete void invoice ${invoice.invoiceNo}? This cannot be undone. Type DELETE to continue.`)!=='DELETE')return;
+ state.invoices=state.invoices.filter(item=>item.id!==id);
+ saveState();queueInvoiceChange('permanent-delete',invoice);refreshDashboard();toast('Invoice removed here; permanent cloud deletion will sync when online.');
+}
 function restoreInvoice(id){
  const invoice=state.invoices.find(item=>item.id===id&&item.deletedAt);if(!invoice)return;
  invoice.deletedAt=null;invoice.updatedAt=new Date().toISOString();
@@ -163,12 +169,13 @@ function refreshDashboard(){
  const q=$('searchBox').value.toLowerCase(),from=$('fromDate').value,to=$('toDate').value;
  const list=state.invoices.filter(x=>Boolean(x.deletedAt)===showDeletedInvoices&&(!q||[x.invoiceNo,x.name,x.phone].join(' ').toLowerCase().includes(q))&&(!from||x.date>=from)&&(!to||x.date<=to));
  $('toggleDeletedBtn').textContent=showDeletedInvoices?'Back to invoices':'Show voided';
- $('invoiceTable').innerHTML=list.map(x=>`<tr><td>${esc(x.invoiceNo)}</td><td>${esc(x.date)}</td><td>${esc(x.name)}</td><td>${esc(x.phone)}</td><td>${money(x.total)}</td><td>${showDeletedInvoices?`<button class="action-btn" data-restore="${x.id}">Restore</button>`:`<button class="action-btn" data-edit="${x.id}">Edit</button><button class="action-btn" data-dup="${x.id}">Copy</button><button class="action-btn" data-share="${x.id}">Share</button><button class="action-btn" data-del="${x.id}">Void</button>`}</td></tr>`).join('')||'<tr><td colspan="6">No invoices found.</td></tr>';
+ $('invoiceTable').innerHTML=list.map(x=>`<tr><td>${esc(x.invoiceNo)}</td><td>${esc(x.date)}</td><td>${esc(x.name)}</td><td>${esc(x.phone)}</td><td>${money(x.total)}</td><td>${showDeletedInvoices?`<button class="action-btn" data-restore="${x.id}">Restore</button><button class="action-btn danger" data-permanent-delete="${x.id}">Delete permanently</button>`:`<button class="action-btn" data-edit="${x.id}">Edit</button><button class="action-btn" data-dup="${x.id}">Copy</button><button class="action-btn" data-share="${x.id}">Share</button><button class="action-btn" data-del="${x.id}">Void</button>`}</td></tr>`).join('')||'<tr><td colspan="6">No invoices found.</td></tr>';
  $('invoiceTable').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editInvoice(b.dataset.edit));
  $('invoiceTable').querySelectorAll('[data-dup]').forEach(b=>b.onclick=()=>duplicateInvoice(b.dataset.dup));
  $('invoiceTable').querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>shareExisting(b.dataset.share));
  $('invoiceTable').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteInvoice(b.dataset.del));
  $('invoiceTable').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>restoreInvoice(b.dataset.restore));
+ $('invoiceTable').querySelectorAll('[data-permanent-delete]').forEach(b=>b.onclick=()=>permanentlyDeleteInvoice(b.dataset.permanentDelete));
  const now=today(),month=now.slice(0,7);
  const activeInvoices=state.invoices.filter(x=>!x.deletedAt);
  $('statInvoices').textContent=activeInvoices.length;
@@ -226,6 +233,7 @@ $('previewBtn').onclick=()=>{const wrap=$('invoicePreviewWrap'),opening=wrap.cla
 $('clearFilters').onclick=()=>{$('searchBox').value='';$('fromDate').value='';$('toDate').value='';refreshDashboard()};
 $('toggleDeletedBtn').onclick=()=>{showDeletedInvoices=!showDeletedInvoices;refreshDashboard()};
 $('saveSettingsBtn').onclick=()=>{const s=state.settings;s.company=$('sCompany').value;s.location=$('sLocation').value;s.phone=$('sPhone').value;s.email=$('sEmail').value;s.website=$('sWebsite').value;s.proprietor=$('sProprietor').value;s.prefix=$('sPrefix').value;s.nextNo=Number($('sNextNo').value)||1;saveState();queueCompanyChange(s);renderPreviewIfEditing();toast('Settings saved on this device')};
+$('restartInvoiceNumberBtn').onclick=()=>{if(!confirm('Reset the next invoice number to 1? Existing invoice numbers are preserved; when numbering resumes, already-used numbers are skipped.'))return;const s=state.settings;s.nextNo=1;$('sNextNo').value='1';saveState();queueCompanyChange(s);toast('Next invoice number reset to 1. Cloud sync will update when available.')};
 function renderPreviewIfEditing(){if(editing)renderPreview()}
 
 function setSyncStatus(text,kind='pending'){

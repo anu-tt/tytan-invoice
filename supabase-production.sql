@@ -1,5 +1,5 @@
 -- Run in the Supabase SQL Editor. Each authenticated user gets a private company.
--- No invoice DELETE policy or table privilege is granted; invoices are retained.
+-- Invoice deletion is restricted to voided invoices owned by the signed-in user.
 create extension if not exists pgcrypto;
 
 create table if not exists public.companies(
@@ -74,7 +74,7 @@ alter table public.invoices enable row level security;
 revoke all on public.companies,public.company_members,public.invoices from public,anon,authenticated;
 grant select,update on public.companies to authenticated;
 grant select on public.company_members to authenticated;
-grant select,insert,update on public.invoices to authenticated;
+grant select,insert,update,delete on public.invoices to authenticated;
 
 create or replace function public.my_company_id()
 returns uuid language sql stable security definer set search_path=public,pg_temp
@@ -109,7 +109,7 @@ $$;
 create or replace function public.assign_invoice_number()
 returns trigger language plpgsql security definer set search_path=public,pg_temp
 as $$
-declare current_no text; n bigint; p text;
+declare current_no text; candidate text; n bigint; p text;
 begin
   select invoice_no into current_no from public.invoices where id=new.id;
   if current_no is not null then
@@ -119,8 +119,13 @@ begin
   select next_invoice_no,invoice_prefix into n,p
   from public.companies where id=new.company_id for update;
   if n is null then raise exception 'Company not found'; end if;
+  candidate:=p||lpad(n::text,3,'0');
+  while exists(select 1 from public.invoices where company_id=new.company_id and invoice_no=candidate) loop
+    n:=n+1;
+    candidate:=p||lpad(n::text,3,'0');
+  end loop;
   update public.companies set next_invoice_no=n+1 where id=new.company_id;
-  new.invoice_no:=p||lpad(n::text,3,'0');
+  new.invoice_no:=candidate;
   return new;
 end
 $$;
@@ -145,6 +150,7 @@ create policy "owner read membership" on public.company_members for select to au
 create policy "owner read invoices" on public.invoices for select to authenticated using(company_id=public.my_company_id());
 create policy "owner insert invoices" on public.invoices for insert to authenticated with check(company_id=public.my_company_id() and created_by=auth.uid());
 create policy "owner update invoices" on public.invoices for update to authenticated using(company_id=public.my_company_id() and created_by=auth.uid()) with check(company_id=public.my_company_id() and created_by=auth.uid());
+create policy "owner permanently delete void invoices" on public.invoices for delete to authenticated using(company_id=public.my_company_id() and created_by=auth.uid() and deleted_at is not null);
 
 revoke all on function public.my_company_id() from public,anon;
 revoke all on function public.claim_company() from public,anon;

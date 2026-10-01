@@ -30,6 +30,7 @@
   for(const [id,operation] of pendingById){
    if(operation.action==='upsert')merged.set(id,operation.invoice);
    else if(operation.action==='delete'&&operation.invoice)merged.set(id,{...operation.invoice,deletedAt:operation.updatedAt});
+   else if(operation.action==='permanent-delete')merged.delete(id);
   }
   state.invoices=[...merged.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   saveState();refreshDashboard();
@@ -61,8 +62,11 @@
   for(const operation of pending){
    let error=null;
    if(operation.action==='company'){
-    const patch={name:operation.settings.company,location:operation.settings.location,phone:operation.settings.phone,email:operation.settings.email,website:operation.settings.website,proprietor:operation.settings.proprietor,invoice_prefix:operation.settings.prefix};
+    const patch={name:operation.settings.company,location:operation.settings.location,phone:operation.settings.phone,email:operation.settings.email,website:operation.settings.website,proprietor:operation.settings.proprietor,invoice_prefix:operation.settings.prefix,next_invoice_no:operation.settings.nextNo};
     const result=await sb.from('companies').update(patch).eq('id',cid);
+    error=result.error;
+   }else if(operation.action==='permanent-delete'){
+    const result=await sb.from('invoices').delete().eq('id',operation.id).eq('company_id',cid).not('deleted_at','is',null);
     error=result.error;
    }else{
     const invoice=operation.invoice;
@@ -70,7 +74,7 @@
     const result=await sb.from('invoices').upsert(payload,{onConflict:'id'});
     error=result.error;
    }
-   if(error){status(`Sync paused: ${error.message}. Local changes are saved on this device.`,'error');return false}
+   if(error){const deleteHint=operation.action==='permanent-delete'?' Run the updated supabase-production.sql in Supabase to enable permanent deletion of void invoices.':'';status(`Sync paused: ${error.message}.${deleteHint} Local changes are saved on this device.`,'error');return false}
    const current=queue().filter(item=>!(item.id===operation.id&&item.updatedAt===operation.updatedAt));
    storeQueue(current);
   }
@@ -110,7 +114,8 @@
   }catch(error){
    const setupHint=error.code==='PGRST202'&&error.message.includes('claim_company')?' Run supabase-production.sql in the Supabase SQL Editor, then retry sync.':'';
    const columnHint=error.code==='PGRST204'&&error.message.includes('deleted_at')?' Run the updated supabase-production.sql in the Supabase SQL Editor, then retry sync.':'';
-   status(`${navigator.onLine?'Sync error':'Offline'}: ${error.message}.${setupHint}${columnHint} Local changes are saved on this device.`,'error');
+   const fetchHint=error instanceof TypeError&&/fetch/i.test(error.message)?' Check your internet connection and confirm the Supabase URL in .env.local is the project URL (https://….supabase.co); browser blockers or an incorrect URL can also block access.':'';
+   status(`${navigator.onLine?'Sync error':'Offline'}: ${error.message}.${setupHint}${columnHint}${fetchHint} Local changes are saved on this device.`,'error');
   }finally{
    busy=false;
    if(shouldRetry)setTimeout(()=>void syncNow(),0);
