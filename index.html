@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#5b16e8">
+  <meta name="theme-color" content="#5420c9">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TYTAN BILLBOOK">
   <link rel="apple-touch-icon" href="icons/tytan-192.png">
-  <title>TYTAN DOOR — Secure Invoice Manager</title>
+  <title>TYTAN BILLBOOK</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="authView" style="min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#4d0ed7,#7a1ae8);padding:20px"><div style="width:min(420px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0003"><div style="font-size:30px;font-weight:900;text-align:center">TYTAN <span style="color:#d83239">DOOR</span></div><p style="text-align:center;color:#777">Invoice Manager · Secure sign in</p><form id="authForm"><label>Email<input id="authEmail" type="email" autocomplete="username" required></label><label>Password<input id="authPassword" type="password" autocomplete="current-password" required></label><button id="authSubmit" class="btn primary" style="width:100%">Login</button></form><button id="authInstallBtn" class="btn download-app-btn" type="button">Download App</button><div id="authMsg" style="text-align:center;color:#b52027;min-height:20px;margin-top:12px"></div></div></div><div id="appView" class="hidden"><div class="app-shell">
+<div id="authView" style="min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#4d0ed7,#7a1ae8);padding:20px"><div class="auth-card" style="width:min(420px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0003"><div class="auth-brand">TYTAN <span>BILLBOOK</span></div><p class="auth-subtitle">Professional Invoice Manager</p><form id="authForm"><label>Email<input id="authEmail" type="email" autocomplete="username" required></label><label>Password<input id="authPassword" type="password" autocomplete="current-password" required></label><button id="authSubmit" class="btn primary" style="width:100%">Login</button></form><button id="authInstallBtn" class="btn download-app-btn" type="button">Download App</button><div id="authMsg" style="text-align:center;color:#b52027;min-height:20px;margin-top:12px"></div></div></div><div id="appView" class="hidden"><div class="app-shell">
   <header class="topbar">
     <div>
-      <div class="brand">TYTAN <span>DOOR</span></div>
+      <div class="brand">TYTAN <span>BILLBOOK</span></div>
       <div class="subbrand">Invoice Manager</div>
     </div>
     <div class="top-actions"><span id="connectionStatus" class="connection-status"></span><span id="syncStatus" class="sync-status" data-state="pending">Preparing local data…</span><span id="userEmail" style="font-size:12px;color:#666"></span><button id="logoutBtn" class="btn">Logout</button>

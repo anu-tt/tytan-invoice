@@ -1,4 +1,4 @@
-const CACHE_NAME='tytan-invoice-shell-v7';
+const CACHE_NAME='tytan-invoice-shell-v9';
 const SHELL_FILES=['./','./index.html','./styles.css','./app.js','./cloud-sync.js','./manifest.json','./icons/tytan.svg','./icons/tytan-192.png','./icons/tytan-512.png','./icons/tytan-logo.png','./icons/tytan-logo-invoice.png','./icons/durian-logo.png','./icons/greenply-logo.png','./icons/greenply-logo-invoice.png','./icons/centuryply-logo.png','./icons/centuryply-logo-invoice.png'];
 const OPTIONAL_SCRIPTS=[
  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',

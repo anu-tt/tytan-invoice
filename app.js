@@ -56,7 +56,8 @@ function queueCompanyChange(settings){
 }
 function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800);}
+let toastTimer;
+function toast(t,duration=2200){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),duration);}
 function nextInvoiceNo(){let n=Number(state.settings.nextNo)||1;return state.settings.prefix+String(n).padStart(3,'0');}
 function blankItem(){return {desc:'',size:'',pcs:1,rate:0};}
 function show(page){['dashboard','editor','settings'].forEach(x=>$(x).classList.toggle('hidden',x!==page));}
@@ -259,18 +260,35 @@ window.addEventListener('offline',updateConnectionStatus);
 updateConnectionStatus();refreshStorageStatus();
 
 let installPrompt=null;
+let pwaShellReady=Promise.resolve(false);
 window.addEventListener('beforeinstallprompt',event=>{
  event.preventDefault();installPrompt=event;
 });
 $('authInstallBtn').onclick=async()=>{
- if(!installPrompt){toast('Open your browser menu and choose Install app or Add to Home Screen.');return}
- await installPrompt.prompt();
- const choice=await installPrompt.userChoice;
- if(choice.outcome==='accepted')toast('App installation started');
- installPrompt=null;
+ const button=$('authInstallBtn');
+ button.disabled=true;button.classList.add('is-loading');button.textContent='Preparing download…';
+ try{
+  if(installPrompt){
+   const promptEvent=installPrompt;installPrompt=null;
+   const promptResult=promptEvent.prompt();
+   const choice=await promptEvent.userChoice;
+   await promptResult;
+   toast(choice.outcome==='accepted'?'TYTAN BILLBOOK installation started':'Installation cancelled');
+   return;
+  }
+  if(!window.isSecureContext)throw new Error('App installation requires the secure HTTPS Vercel address.');
+  if(!('serviceWorker' in navigator))throw new Error('This browser does not support app installation.');
+  if(!await pwaShellReady)throw new Error('The app could not prepare its offline files. Reload the page and try again.');
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(standalone){toast('TYTAN BILLBOOK is already installed.');return}
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const message=ios?'In Safari, tap Share, then Add to Home Screen.':/Android/i.test(navigator.userAgent)?'In Chrome, open ⋮ and choose Install app or Add to Home screen.':'In Chrome or Edge, open the ⋮ menu and choose Install TYTAN BILLBOOK.';
+  toast(message,7000);
+ }catch(error){toast(`Install could not start: ${error.message}`)}
+ finally{button.disabled=false;button.classList.remove('is-loading');button.textContent='Download App'}
 };
 window.addEventListener('appinstalled',()=>toast('App installed'));
 if('serviceWorker' in navigator&&location.protocol!=='file:'){
- navigator.serviceWorker.register('./service-worker.js').catch(error=>setSyncStatus(`Offline support unavailable: ${error.message}`,'error'));
+ pwaShellReady=navigator.serviceWorker.register('./service-worker.js').then(()=>navigator.serviceWorker.ready).then(()=>true).catch(error=>{setSyncStatus(`Offline support unavailable: ${error.message}`,'error');return false});
 }
 refreshDashboard();

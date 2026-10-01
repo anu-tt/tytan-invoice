@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "TYTAN DOOR Invoice Manager",
-  "short_name": "TYTAN Invoice",
-  "description": "Create and manage TYTAN DOOR invoices offline and sync across devices.",
-  "start_url": "./index.html",
+  "name": "TYTAN BILLBOOK",
+  "short_name": "TYTAN BILLBOOK",
+  "description": "Create, manage, and share invoices with TYTAN BILLBOOK.",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#f4f5f8",
-  "theme_color": "#5b16e8",
+  "background_color": "#ffffff",
+  "theme_color": "#5420c9",
   "icons": [
     {
       "src": "./icons/tytan.svg",

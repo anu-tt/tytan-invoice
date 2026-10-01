@@ -39,13 +39,24 @@ if (!url || !anonKey) {
 
   $('authForm').onsubmit = async event => {
     event.preventDefault();
-    message('Please wait…');
+    const submit = $('authSubmit');
+    submit.disabled = true;
+    submit.classList.add('is-loading');
+    submit.textContent = 'Signing in…';
+    message('Connecting securely…');
     const email = $('authEmail').value.trim();
     const password = $('authPassword').value;
-    const result = await sb.auth.signInWithPassword({ email, password });
-
-    if (result.error) message(result.error.message);
-    else message('');
+    try {
+      const result = await sb.auth.signInWithPassword({ email, password });
+      if (result.error) message(result.error.message);
+      else message('');
+    } catch (error) {
+      message(`Could not connect: ${error.message}`);
+    } finally {
+      submit.disabled = false;
+      submit.classList.remove('is-loading');
+      submit.textContent = 'Login';
+    }
   };
   $('logoutBtn').onclick = async () => {
     const { error } = await sb.auth.signOut();
