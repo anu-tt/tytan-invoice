@@ -280,3 +280,43 @@ body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--canvas);colo
 .export-loading strong{padding-top:3px;color:#fff;font-size:16px;text-shadow:0 1px 4px #0006}
 .export-loading small{color:#f2f3f7;text-shadow:0 1px 4px #0006}
 @keyframes export-spin{to{transform:rotate(360deg)}}
+.mobile-back-btn{display:none}
+
+/* Keep the narrow dashboard layout from inheriting the desktop table width. */
+@media(max-width:800px){
+ .top-actions #newInvoiceBtn{grid-row:auto}
+ #appView{min-height:100dvh}
+ body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent}
+ .topbar{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+ .brand{font-size:23px}
+ .page{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+ .table-wrap{width:100%;max-width:100%;overflow:visible}
+ .table-wrap table{width:100%;min-width:0}
+ .table-wrap td{display:grid;align-items:start;gap:3px;overflow-wrap:break-word}
+ .table-wrap td:before{white-space:nowrap}
+ .item-table-wrap{width:100%;max-width:100%;overflow:visible}
+ .items-table{width:100%;min-width:0;display:block}
+ .items-table thead{display:none}
+ .items-table tbody{display:grid;gap:12px;padding:0 12px}
+ .items-table tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 3px 12px #1822300b}
+ .items-table td{display:flex;min-width:0;flex-direction:column;justify-content:flex-end;gap:6px;padding:0;border:0;white-space:normal;color:var(--ink);font-size:12px;font-weight:650}
+ .items-table td:before{color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.05em;text-transform:uppercase;content:attr(data-label)}
+ .items-table td:nth-child(1){grid-column:1/-1}
+ .items-table td:nth-child(2){grid-column:1}
+ .items-table td:nth-child(3){grid-column:2}
+ .items-table td:nth-child(4){grid-column:1}
+ .items-table td:nth-child(5){grid-column:2;align-items:flex-start;justify-content:center;min-height:64px;padding:10px 12px;border-radius:9px;background:#f5f6fa;font-size:15px}
+ .items-table td:nth-child(6){grid-column:1/-1;align-items:flex-end}
+ .items-table input{width:100%;min-width:0;min-height:46px;font-size:16px}
+ .items-table [data-remove]{width:44px;height:44px;padding:0;border-radius:10px;background:#fff1f0;color:#b42318;font-size:23px}
+ .filters{min-width:0}
+ .filters input{max-width:100%}
+ .form-actions{gap:8px}
+ .settings-actions{display:grid;grid-template-columns:1fr}
+ .settings-actions .btn{width:100%}
+ .toast{right:12px;bottom:max(12px,env(safe-area-inset-bottom));left:12px;text-align:center}
+ #appView[data-page="editor"] .page,#appView[data-page="settings"] .page{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+ .mobile-back-btn{position:fixed;z-index:30;left:max(16px,env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:0 19px;border:1px solid #e4e7ef;border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 8px 26px rgba(22,31,48,.2);color:#263448;font:600 14px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(10px)}
+ .mobile-back-btn span{font-size:20px;line-height:1;color:var(--brand)}
+ .mobile-back-btn:active{transform:scale(.97)}
+}

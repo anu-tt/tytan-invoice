@@ -60,7 +60,22 @@ let toastTimer;
 function toast(t,duration=2200){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),duration);}
 function nextInvoiceNo(){let n=Number(state.settings.nextNo)||1;return state.settings.prefix+String(n).padStart(3,'0');}
 function blankItem(){return {desc:'',size:'',pcs:1,rate:0};}
-function show(page){['dashboard','editor','settings'].forEach(x=>$(x).classList.toggle('hidden',x!==page));}
+function show(page){
+ ['dashboard','editor','settings'].forEach(x=>$(x).classList.toggle('hidden',x!==page));
+ $('appView').dataset.page=page;
+ updateMobileBackButton();
+}
+const visibleMobileActionTargets=new Set();
+function updateMobileBackButton(){
+ $('mobileBackBtn').classList.toggle('hidden',$('appView').dataset.page==='dashboard'||visibleMobileActionTargets.size>0);
+}
+if('IntersectionObserver' in window){
+ const mobileActionObserver=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>entry.isIntersecting?visibleMobileActionTargets.add(entry.target):visibleMobileActionTargets.delete(entry.target));
+  updateMobileBackButton();
+ },{threshold:.05});
+ document.querySelectorAll('#editor .form-actions,#saveSettingsBtn,#restartInvoiceNumberBtn,#settings .sync-box').forEach(target=>mobileActionObserver.observe(target));
+}
 function calc(items){return items.reduce((s,x)=>s+(Number(x.pcs)||0)*(Number(x.rate)||0),0);}
 
 function openNew(){
@@ -78,12 +93,12 @@ function renderItems(){
  $('itemsBody').innerHTML='';
  editing.items.forEach((it,i)=>{
    const tr=document.createElement('tr');
-   tr.innerHTML=`<td><input data-i="${i}" data-k="desc" value="${esc(it.desc)}"></td>
-   <td><input data-i="${i}" data-k="size" value="${esc(it.size)}"></td>
-   <td><input data-i="${i}" data-k="pcs" type="number" min="0" data-i="${i}" data-k="pcs" value="${it.pcs}"></td>
-   <td><input data-i="${i}" data-k="rate" type="number" min="0" step="0.01" value="${it.rate}"></td>
-   <td>${money((Number(it.pcs)||0)*(Number(it.rate)||0))}</td>
-   <td><button class="action-btn" data-remove="${i}">×</button></td>`;
+   tr.innerHTML=`<td data-label="Description"><input data-i="${i}" data-k="desc" value="${esc(it.desc)}"></td>
+   <td data-label="Size"><input data-i="${i}" data-k="size" value="${esc(it.size)}"></td>
+   <td data-label="Pieces"><input data-i="${i}" data-k="pcs" type="number" min="0" data-i="${i}" data-k="pcs" value="${it.pcs}"></td>
+   <td data-label="Rate"><input data-i="${i}" data-k="rate" type="number" min="0" step="0.01" value="${it.rate}"></td>
+   <td data-label="Amount">${money((Number(it.pcs)||0)*(Number(it.rate)||0))}</td>
+   <td data-label="Remove"><button class="action-btn" data-remove="${i}" aria-label="Remove item">×</button></td>`;
    $('itemsBody').appendChild(tr);
  });
  $('itemsBody').querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
@@ -287,6 +302,7 @@ $('exportDialog').addEventListener('click',event=>{if(event.target===$('exportDi
 
 function loadSettingsUI(){const s=state.settings;['company','location','phone','email','website','proprietor','prefix','nextNo'].forEach(k=>{const el=$('s'+k.charAt(0).toUpperCase()+k.slice(1));if(el)el.value=s[k]??''});}
 $('newInvoiceBtn').onclick=openNew;$('backBtn').onclick=()=>{show('dashboard');refreshDashboard()};$('settingsBtn').onclick=()=>{loadSettingsUI();show('settings')};$('settingsBackBtn').onclick=()=>{show('dashboard');refreshDashboard()};
+$('mobileBackBtn').onclick=()=>{show('dashboard');refreshDashboard()};
 $('customerName').addEventListener('input',e=>{if(!editing)return;editing.name=e.target.value;renderPreview()});
 $('customerPhone').addEventListener('input',e=>{if(!editing)return;editing.phone=e.target.value;renderPreview()});
 $('customerAddress').addEventListener('input',e=>{if(!editing)return;editing.address=e.target.value;renderPreview()});
