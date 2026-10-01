@@ -154,6 +154,18 @@
     </button>
   </div>
 </dialog>
+<dialog id="deleteInvoiceDialog" class="delete-dialog" aria-labelledby="deleteInvoiceTitle">
+  <div class="delete-dialog-icon" aria-hidden="true">!</div>
+  <h2 id="deleteInvoiceTitle">Permanently delete invoice?</h2>
+  <p class="delete-dialog-summary">This permanently removes <strong id="deleteInvoiceNumber"></strong> from Supabase and cannot be undone.</p>
+  <label class="delete-confirm-label" for="deleteInvoiceConfirm">Type <strong>DELETE</strong> to confirm</label>
+  <input id="deleteInvoiceConfirm" class="delete-confirm-input" autocomplete="off" spellcheck="false" aria-describedby="deleteInvoiceHelp">
+  <small id="deleteInvoiceHelp" class="delete-dialog-help">Only voided invoices can be permanently deleted. Your database must allow this action.</small>
+  <div class="delete-dialog-actions">
+    <button id="cancelPermanentDelete" class="btn" type="button">Keep invoice</button>
+    <button id="confirmPermanentDelete" class="btn delete-confirm-button" type="button" disabled>Delete permanently</button>
+  </div>
+</dialog>
 <div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>

@@ -152,11 +152,17 @@ function deleteInvoice(id){
  invoice.deletedAt=new Date().toISOString();invoice.updatedAt=invoice.deletedAt;
  saveState();queueInvoiceChange('delete',invoice);refreshDashboard();toast('Invoice marked void; its record is retained.');
 }
+let pendingPermanentDeleteId=null;
 function permanentlyDeleteInvoice(id){
  const invoice=state.invoices.find(item=>item.id===id&&item.deletedAt);if(!invoice)return;
- if(prompt(`Permanently delete void invoice ${invoice.invoiceNo}? This cannot be undone. Type DELETE to continue.`)!=='DELETE')return;
+ pendingPermanentDeleteId=id;$('deleteInvoiceNumber').textContent=invoice.invoiceNo;$('deleteInvoiceConfirm').value='';$('confirmPermanentDelete').disabled=true;$('deleteInvoiceDialog').showModal();$('deleteInvoiceConfirm').focus();
+}
+function confirmPermanentDelete(){
+ const id=pendingPermanentDeleteId,invoice=state.invoices.find(item=>item.id===id&&item.deletedAt);
+ if(!invoice||$('deleteInvoiceConfirm').value.trim()!=='DELETE')return;
  state.invoices=state.invoices.filter(item=>item.id!==id);
  saveState();queueInvoiceChange('permanent-delete',invoice);refreshDashboard();toast('Invoice removed here; permanent cloud deletion will sync when online.');
+ pendingPermanentDeleteId=null;$('deleteInvoiceDialog').close();
 }
 function restoreInvoice(id){
  const invoice=state.invoices.find(item=>item.id===id&&item.deletedAt);if(!invoice)return;
@@ -175,7 +181,7 @@ function refreshDashboard(){
  $('invoiceTable').querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>shareExisting(b.dataset.share));
  $('invoiceTable').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteInvoice(b.dataset.del));
  $('invoiceTable').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>restoreInvoice(b.dataset.restore));
- $('invoiceTable').querySelectorAll('[data-permanent-delete]').forEach(b=>b.onclick=()=>permanentlyDeleteInvoice(b.dataset.permanentDelete));
+$('invoiceTable').querySelectorAll('[data-permanent-delete]').forEach(b=>b.onclick=()=>permanentlyDeleteInvoice(b.dataset.permanentDelete));
  const now=today(),month=now.slice(0,7);
  const activeInvoices=state.invoices.filter(x=>!x.deletedAt);
  $('statInvoices').textContent=activeInvoices.length;
@@ -232,6 +238,9 @@ $('previewBtn').onclick=()=>{const wrap=$('invoicePreviewWrap'),opening=wrap.cla
 ['searchBox','fromDate','toDate'].forEach(id=>$(id).addEventListener('input',refreshDashboard));
 $('clearFilters').onclick=()=>{$('searchBox').value='';$('fromDate').value='';$('toDate').value='';refreshDashboard()};
 $('toggleDeletedBtn').onclick=()=>{showDeletedInvoices=!showDeletedInvoices;refreshDashboard()};
+$('deleteInvoiceConfirm').addEventListener('input',event=>{$('confirmPermanentDelete').disabled=event.target.value.trim()!=='DELETE'});
+$('cancelPermanentDelete').onclick=()=>{$('deleteInvoiceDialog').close();pendingPermanentDeleteId=null};
+$('confirmPermanentDelete').onclick=confirmPermanentDelete;
 $('saveSettingsBtn').onclick=()=>{const s=state.settings;s.company=$('sCompany').value;s.location=$('sLocation').value;s.phone=$('sPhone').value;s.email=$('sEmail').value;s.website=$('sWebsite').value;s.proprietor=$('sProprietor').value;s.prefix=$('sPrefix').value;s.nextNo=Number($('sNextNo').value)||1;saveState();queueCompanyChange(s);renderPreviewIfEditing();toast('Settings saved on this device')};
 $('restartInvoiceNumberBtn').onclick=()=>{if(!confirm('Reset the next invoice number to 1? Existing invoice numbers are preserved; when numbering resumes, already-used numbers are skipped.'))return;const s=state.settings;s.nextNo=1;$('sNextNo').value='1';saveState();queueCompanyChange(s);toast('Next invoice number reset to 1. Cloud sync will update when available.')};
 function renderPreviewIfEditing(){if(editing)renderPreview()}

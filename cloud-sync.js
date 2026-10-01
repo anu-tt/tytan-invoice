@@ -74,7 +74,7 @@
     const result=await sb.from('invoices').upsert(payload,{onConflict:'id'});
     error=result.error;
    }
-   if(error){const deleteHint=operation.action==='permanent-delete'?' Run the updated supabase-production.sql in Supabase to enable permanent deletion of void invoices.':'';status(`Sync paused: ${error.message}.${deleteHint} Local changes are saved on this device.`,'error');return false}
+   if(error){const deleteHint=operation.action==='permanent-delete'&&error.code==='42501'?' Apply supabase-void-delete.sql in the Supabase SQL Editor, then choose Sync now.':'';status(`Sync paused: ${error.message}.${deleteHint} Local changes are saved on this device.`,'error');return false}
    const current=queue().filter(item=>!(item.id===operation.id&&item.updatedAt===operation.updatedAt));
    storeQueue(current);
   }
