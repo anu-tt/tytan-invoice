@@ -33,6 +33,7 @@
    else if(operation.action==='permanent-delete')merged.delete(id);
   }
   state.invoices=[...merged.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(typeof window.ensureNoDuplicateInvoices==='function')window.ensureNoDuplicateInvoices();
   saveState();refreshDashboard();
  }
  async function getCompanyId(){
@@ -53,6 +54,7 @@
    const normalizedSettings=normalizeCompanySettings(cloudSettings);
    const hasLegacyText=Object.keys(cloudSettings).some(key=>cloudSettings[key]!==normalizedSettings[key]);
    state.settings={...state.settings,...normalizedSettings};
+   if(typeof window.ensureNoDuplicateInvoices==='function')window.ensureNoDuplicateInvoices();
    saveState();renderPreviewIfEditing();
    if(hasLegacyText)queueCompanyChange(state.settings);
   }

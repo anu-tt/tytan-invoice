@@ -4,10 +4,10 @@
   "description": "- Email/password login and persistent sessions - Cloud invoice storage with Supabase - Realtime phone/laptop sync - Atomic cloud invoice-number generation - RLS-protected company and invoice data - Fixed TYTAN DOOR-style invoice layout - PDF/JPG/Excel export and mobile share - Search, date/calendar filters, edit/copy/delete - Responsive PWA for phone and laptop",
   "main": "app.js",
   "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview"
-},
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3000"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

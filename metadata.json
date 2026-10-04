@@ -1,0 +1,7 @@
+{
+  "name": "TYTAN BILLBOOK",
+  "description": "Professional invoice manager for TYTAN DOOR with offline storage, real-time sync, and PDF/JPG/Excel export.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

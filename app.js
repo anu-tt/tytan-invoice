@@ -24,6 +24,77 @@ let editing=null;
 let showDeletedInvoices=false;
 
 function saveState(){localStorage.setItem(activeStateKey,JSON.stringify(state));}
+
+function getUsedInvoiceNumbers(excludeId=null){
+ const used=new Set();
+ if(Array.isArray(state.invoices)){
+  for(const inv of state.invoices){
+   if(inv&&inv.invoiceNo&&(!excludeId||inv.id!==excludeId)){
+    used.add(String(inv.invoiceNo).trim().toUpperCase());
+   }
+  }
+ }
+ return used;
+}
+
+function getNextInvoiceNumber(excludeId=null){
+ const prefix=state.settings.prefix||'INV-';
+ const used=getUsedInvoiceNumbers(excludeId);
+ let n=Math.max(1,Number(state.settings.nextNo)||1);
+ let candidate=prefix+String(n).padStart(3,'0');
+ while(used.has(candidate.toUpperCase())){
+  n++;
+  candidate=prefix+String(n).padStart(3,'0');
+ }
+ return {num:n,formatted:candidate};
+}
+
+function nextInvoiceNo(excludeId=null){
+ return getNextInvoiceNumber(excludeId).formatted;
+}
+
+function ensureNoDuplicateInvoices(){
+ if(!Array.isArray(state.invoices))return;
+ const seen=new Set();
+ let changed=false;
+ const prefix=state.settings.prefix||'INV-';
+
+ for(let i=state.invoices.length-1;i>=0;i--){
+  const inv=state.invoices[i];
+  if(!inv||!inv.invoiceNo)continue;
+  const key=String(inv.invoiceNo).trim().toUpperCase();
+  if(seen.has(key)){
+   let n=Math.max(1,Number(state.settings.nextNo)||1);
+   let candidate=prefix+String(n).padStart(3,'0');
+   while(seen.has(candidate.toUpperCase())){
+    n++;
+    candidate=prefix+String(n).padStart(3,'0');
+   }
+   inv.invoiceNo=candidate;
+   inv.updatedAt=new Date().toISOString();
+   seen.add(candidate.toUpperCase());
+   changed=true;
+   queueInvoiceChange('upsert',inv);
+  }else{
+   seen.add(key);
+  }
+ }
+
+ let nextNum=Math.max(1,Number(state.settings.nextNo)||1);
+ while(seen.has((prefix+String(nextNum).padStart(3,'0')).toUpperCase())){
+  nextNum++;
+ }
+ if(nextNum!==state.settings.nextNo){
+  state.settings.nextNo=nextNum;
+  changed=true;
+  queueCompanyChange(state.settings);
+ }
+ if(changed)saveState();
+}
+window.ensureNoDuplicateInvoices=ensureNoDuplicateInvoices;
+window.getNextInvoiceNumber=getNextInvoiceNumber;
+ensureNoDuplicateInvoices();
+
 window.setInvoiceAccount=userId=>{
  if(userId===activeAccountId)return;
  activeAccountId=userId||null;
@@ -32,6 +103,7 @@ window.setInvoiceAccount=userId=>{
  window.tytanQueueStorageKey=activeQueueKey;
  state=userId?(JSON.parse(localStorage.getItem(activeStateKey)||'null')||{settings:DEFAULT_SETTINGS,invoices:[]}):{settings:DEFAULT_SETTINGS,invoices:[]};
  state.settings={...DEFAULT_SETTINGS,...state.settings};
+ ensureNoDuplicateInvoices();
  refreshDashboard();
  window.dispatchEvent(new Event('tytan-account-changed'));
 };
@@ -58,7 +130,6 @@ function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFract
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 let toastTimer;
 function toast(t,duration=2200){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),duration);}
-function nextInvoiceNo(){let n=Number(state.settings.nextNo)||1;return state.settings.prefix+String(n).padStart(3,'0');}
 function blankItem(){return {desc:'',size:'',pcs:1,rate:0};}
 function show(page){
  ['dashboard','editor','settings'].forEach(x=>$(x).classList.toggle('hidden',x!==page));
@@ -154,11 +225,66 @@ function renderPreview(){
 function saveInvoice(){
  editing.name=$('customerName').value.trim();editing.phone=$('customerPhone').value.trim();editing.address=$('customerAddress').value.trim();editing.date=$('invoiceDate').value;
  if(!editing.name){toast('Customer name is required');return;}
- const existing=state.invoices.findIndex(x=>x.id===editing.id);
- const copy=JSON.parse(JSON.stringify(editing));copy.id=existing>=0?editing.id:crypto.randomUUID();copy.total=calc(copy.items);copy.updatedAt=new Date().toISOString();
- if(existing>=0)state.invoices[existing]=copy;else{state.invoices.unshift(copy);state.settings.nextNo=Number(state.settings.nextNo)+1;}
- editing.id=copy.id;editing.invoiceNo=copy.invoiceNo;editing.updatedAt=copy.updatedAt;editing.total=copy.total;
- saveState();queueInvoiceChange('upsert',copy);toast('Invoice saved on this device. Cloud sync will run when available.');refreshDashboard();
+ const existingIndex=state.invoices.findIndex(x=>x.id===editing.id);
+ const isNew=existingIndex<0;
+
+ // Ensure unique invoice number so each bill has a different invoice number
+ const usedNumbers=getUsedInvoiceNumbers(isNew?null:editing.id);
+ let candidateNo=(editing.invoiceNo||$('invoiceNo').value||'').trim();
+ if(!candidateNo||usedNumbers.has(candidateNo.toUpperCase())){
+  const next=getNextInvoiceNumber(isNew?null:editing.id);
+  candidateNo=next.formatted;
+ }
+
+ const copy=JSON.parse(JSON.stringify(editing));
+ copy.id=isNew?crypto.randomUUID():editing.id;
+ copy.invoiceNo=candidateNo;
+ copy.total=calc(copy.items);
+ copy.updatedAt=new Date().toISOString();
+
+ if(isNew){
+  state.invoices.unshift(copy);
+  const prefix=state.settings.prefix||'INV-';
+  let savedNum=0;
+  if(candidateNo.startsWith(prefix)){
+   savedNum=parseInt(candidateNo.slice(prefix.length),10)||0;
+  }else{
+   const match=candidateNo.match(/(\d+)$/);
+   if(match)savedNum=parseInt(match[1],10)||0;
+  }
+  let nextNum=Math.max(Number(state.settings.nextNo)||1,savedNum+1);
+  const allUsed=getUsedInvoiceNumbers();
+  while(allUsed.has((prefix+String(nextNum).padStart(3,'0')).toUpperCase())){
+   nextNum++;
+  }
+  state.settings.nextNo=nextNum;
+  queueCompanyChange(state.settings);
+ }else{
+  state.invoices[existingIndex]=copy;
+  const prefix=state.settings.prefix||'INV-';
+  let nextNum=Number(state.settings.nextNo)||1;
+  const allUsed=getUsedInvoiceNumbers();
+  while(allUsed.has((prefix+String(nextNum).padStart(3,'0')).toUpperCase())){
+   nextNum++;
+  }
+  if(nextNum!==state.settings.nextNo){
+   state.settings.nextNo=nextNum;
+   queueCompanyChange(state.settings);
+  }
+ }
+
+ editing.id=copy.id;
+ editing.invoiceNo=copy.invoiceNo;
+ editing.updatedAt=copy.updatedAt;
+ editing.total=copy.total;
+ $('invoiceNo').value=copy.invoiceNo;
+ $('editorTitle').textContent='Edit Invoice';
+
+ saveState();
+ queueInvoiceChange('upsert',copy);
+ toast('Invoice saved on this device. Cloud sync will run when available.');
+ refreshDashboard();
+ renderPreview();
 }
 function editInvoice(id){const x=state.invoices.find(i=>i.id===id);if(!x)return;editing=JSON.parse(JSON.stringify(x));fillEditor();show('editor');}
 function deleteInvoice(id){
@@ -316,7 +442,7 @@ $('deleteInvoiceConfirm').addEventListener('input',event=>{$('confirmPermanentDe
 $('cancelPermanentDelete').onclick=()=>{$('deleteInvoiceDialog').close();pendingPermanentDeleteId=null};
 $('confirmPermanentDelete').onclick=confirmPermanentDelete;
 $('saveSettingsBtn').onclick=()=>{const s=state.settings;s.company=$('sCompany').value;s.location=$('sLocation').value;s.phone=$('sPhone').value;s.email=$('sEmail').value;s.website=$('sWebsite').value;s.proprietor=$('sProprietor').value;s.prefix=$('sPrefix').value;s.nextNo=Number($('sNextNo').value)||1;saveState();queueCompanyChange(s);renderPreviewIfEditing();toast('Settings saved on this device')};
-$('restartInvoiceNumberBtn').onclick=()=>appConfirm({title:'Restart invoice numbering?',message:'The next number will start at 1. Existing invoice numbers stay unchanged, and already-used numbers will be skipped.',confirmText:'Restart numbering',onConfirm:()=>{const s=state.settings;s.nextNo=1;$('sNextNo').value='1';saveState();queueCompanyChange(s);toast('Next invoice number reset to 1. Cloud sync will update when available.')}});
+$('restartInvoiceNumberBtn').onclick=()=>appConfirm({title:'Restart invoice numbering?',message:'The next number will start at 1. Existing invoice numbers stay unchanged, and already-used numbers will be skipped.',confirmText:'Restart numbering',onConfirm:()=>{const s=state.settings;s.nextNo=1;const next=getNextInvoiceNumber();s.nextNo=next.num;$('sNextNo').value=String(s.nextNo);saveState();queueCompanyChange(s);toast(`Next invoice number reset to ${s.nextNo} (${next.formatted}). Cloud sync will update when available.`)}});
 $('cancelAppConfirm').onclick=()=>closeAppConfirm(false);
 $('acceptAppConfirm').onclick=()=>closeAppConfirm(true);
 $('appConfirmDialog').addEventListener('click',event=>{if(event.target===$('appConfirmDialog'))closeAppConfirm(false)});
